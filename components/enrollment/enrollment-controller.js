@@ -85,6 +85,50 @@ trackerCapture.controller('EnrollmentController',
             });
         }
 
+        OrgUnitFactory.getSearchTreeRoot().then(function(response) {
+            $scope.orgUnits = response.organisationUnits;
+            angular.forEach($scope.orgUnits, function(ou){
+                ou.show = true;
+                angular.forEach(ou.children, function(o){                    
+                    o.hasChildren = o.children && o.children.length > 0 ? true : false;
+                });            
+            });
+        });
+
+        $scope.expandCollapse = function(orgUnit) {
+            console.log(orgUnit);
+            if( orgUnit.hasChildren ){
+                //Get children for the selected orgUnit
+                OrgUnitFactory.getChildren(orgUnit.id).then(function(ou) {
+                    orgUnit.show = !orgUnit.show;
+                    orgUnit.hasChildren = false;
+                    orgUnit.children = ou.children;
+                    angular.forEach(orgUnit.children, function(ou){
+                        ou.hasChildren = ou.children && ou.children.length > 0 ? true : false;
+                    });
+                });
+            }
+            else{
+                orgUnit.show = !orgUnit.show;
+            }     
+        };
+
+        $scope.toggleOrgUnitEditing = function(){
+            $scope.enrollmentOrgUnitState.isEditing = !$scope.enrollmentOrgUnitState.isEditing;
+        }
+
+        $scope.setSelectedSearchingOrgUnit = function(orgUnit){
+            $scope.selectedEnrollment.orgUnit = orgUnit.id;
+            $scope.selectedEnrollment.orgUnitName = orgUnit.displayName;
+
+            $scope.enrollmentOrgUnitState.status = "pending";
+            EnrollmentService.update($scope.selectedEnrollment).then(function(){
+                $scope.enrollmentOrgUnitState.status = 'success';
+            }, function(){
+                $scope.enrollmentOrgUnitState.status = 'error';
+            });       
+        };
+
         $scope.$on('ownerUpdated', function(event, args){
             setOwnerOrgUnit();
         });
@@ -124,6 +168,10 @@ trackerCapture.controller('EnrollmentController',
             $scope.enrollmentDateState= getDefaultReportDateState();
             $scope.incidentDateState = getDefaultReportDateState();
             $scope.enrollmentGeometryState = { editable: false, geometry: null };
+            $scope.enrollmentOrgUnitState = {
+                "isEditing": false,
+                "status": ""
+            }
             angular.forEach(selections.enrollments, function (en) {
                 if (en.status === "ACTIVE" && $scope.selectedProgram && $scope.selectedProgram.id !== en.program) {
                     $scope.activeEnrollments.push(en);
