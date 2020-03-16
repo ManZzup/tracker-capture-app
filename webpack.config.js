@@ -16,8 +16,9 @@ try {
     console.warn('\nWARNING! Failed to load DHIS config:', e.message);
     console.info('Using default config');
     dhisConfig = {
-        baseUrl: 'http://localhost:8080/dhis',
-        authorization: 'Basic YWRtaW46ZGlzdHJpY3Q=' // admin:district
+        baseUrl: 'http://43.224.124.234:7080',
+        // authorization: 'Basic YWRtaW46ZGlzdHJpY3Q=' // admin:district
+        authorization: 'Basic ZGV2OkRldjEyMzQ1Iw=='
     };
 }
 console.log(JSON.stringify(dhisConfig, null, 2), '\n');
