@@ -16,8 +16,9 @@ trackerCapture.controller('EnrollmentController',
                 ModalService,
                 OrgUnitFactory,
                 NotificationService,
-                AuthorityService) {
-    
+                AuthorityService,
+                TEIService) {
+                    
         var selections;
         $scope.userAuthority = AuthorityService.getUserAuthorities(SessionStorageService.get('USER_PROFILE'));
         var currentReportDate;
@@ -80,6 +81,7 @@ trackerCapture.controller('EnrollmentController',
 
         var setOwnerOrgUnit = function() {
             var owningOrgUnitId = CurrentSelection.currentSelection.tei.programOwnersById[$scope.selectedProgram.id];
+            console.log(CurrentSelection.currentSelection.tei);
             OrgUnitFactory.getFromStoreOrServer(owningOrgUnitId).then(function(orgUnit){
                 $scope.owningOrgUnitName = orgUnit.displayName;
             });
@@ -96,7 +98,6 @@ trackerCapture.controller('EnrollmentController',
         });
 
         $scope.expandCollapse = function(orgUnit) {
-            console.log(orgUnit);
             if( orgUnit.hasChildren ){
                 //Get children for the selected orgUnit
                 OrgUnitFactory.getChildren(orgUnit.id).then(function(ou) {
@@ -123,10 +124,32 @@ trackerCapture.controller('EnrollmentController',
 
             $scope.enrollmentOrgUnitState.status = "pending";
             EnrollmentService.update($scope.selectedEnrollment).then(function(){
-                $scope.enrollmentOrgUnitState.status = 'success';
+                TEIService.changeTeiProgramOwner($scope.selectedTei.trackedEntityInstance, $scope.selectedProgram.id, orgUnit.id).then(function(response){
+                    $rootScope.$broadcast('ownerUpdated', {programExists: true});
+                    $scope.enrollmentOrgUnitState.status = 'success';
+                });
             }, function(){
                 $scope.enrollmentOrgUnitState.status = 'error';
             });       
+        };
+
+        //Function for checking if a OrgUnit in the OrgUnit tree has the selected program, in that case a referral can be made.
+        $scope.hasSelectedProgram = function(orgUnit) {
+            if(orgUnit.hasSelectedProgram){
+                return true;
+            }else if(angular.isDefined(orgUnit.hasSelectedProgram)){
+                return false;
+            }
+            if(orgUnit.programs) {
+                for(var i = 0; i < orgUnit.programs.length; i++) {
+                    if (orgUnit.programs[i].id === $scope.selectedProgram.id) {
+                        orgUnit.hasSelectedProgram = true;
+                        return true;
+                    }
+                }
+            }
+            orgUnit.hasSelectedProgram = false;
+            return false;
         };
 
         $scope.$on('ownerUpdated', function(event, args){
