@@ -1393,4 +1393,68 @@ trackerCapture.controller('RegistrationController',
     var showTetRegistrationButtons = function(){
         return $scope.trackedEntityTypes.selected && $scope.attributes && $scope.attributes.length > 3;
     }
+
+    var insidePolygon = function(poly, pointx, pointy) {
+        // ray casting algorithm for point in poly search
+        var i, j;
+        var inside = false;
+        for (i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+            if(((poly[i][0] > pointy) != (poly[j][0] > pointy)) && (pointx < (poly[j][1]-poly[i][1]) * (pointy-poly[i][0]) / (poly[j][0]-poly[i][0]) + poly[i][1]) ) inside = !inside;
+        }
+        return inside;
+    }
+
+    $scope.geometryCallback = function(){
+        // we only do this for a point for now, later extend for polygons
+        const selectedCoordinates = ($scope.selectedTei.geometry.type === "Point") ? 
+                                        $scope.selectedTei.geometry.coordinates : null;
+        
+        console.log("here", selectedCoordinates);
+        if(selectedCoordinates){
+            // do a very inefficient coordinate mapping
+            TCStorageService.currentStore.open().done(function(){
+                TCStorageService.currentStore.getAll('organisationUnits').done(function(orgUnits){
+                    for(var orgId in orgUnits){
+                        const org = orgUnits[orgId];
+
+                        // Find MOH only
+                        if(org.level !== 4){
+                            continue;
+                        }
+
+                        // MOH without bounding box
+                        if(!org.geometry){
+                            continue;
+                        }
+
+                        const polys = org.geometry.coordinates;
+                        
+                        if(insidePolygon(polys[0], selectedCoordinates[1], selectedCoordinates[0])){
+                            var isInside = true;
+                            // check if multipolygon
+                            if(polys.length > 1){
+                                for(var p=1;p<polys.length;p++){
+                                    if(insidePolygon(polys[p], selectedCoordinates[1], selectedCoordinates[0])){
+                                        isInside = false;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if(isInside){
+                                $scope.selectedEnrollment.orgUnit = org.id;
+                                $scope.selectedEnrollment.orgUnitName = org.displayName;
+                                $scope.selectedOrgUnit.id = org.id;
+                                $scope.selectedOrgUnit.displayName = org.displayName;
+                                reloadProfileWidget();
+                                break;
+                            }
+                        }
+                    }
+                });
+            });
+        }
+        
+        
+    }
 });

@@ -45,6 +45,7 @@ import '../components/home/lists/lists-controller.js';
 import '../components/home/search/search-controller.js';
 import '../components/topbar/topbar-controller.js';
 import '../components/teiAudit/tei-audit-controller.js';
+import '../components/form/geometry/map-controller.js';
 
 import L from 'leaflet';
 delete L.Icon.Default.prototype._getIconUrl;

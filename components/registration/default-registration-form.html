@@ -7,13 +7,14 @@
             {{ trackedEntityTypes.selected.featureType.toLowerCase()+'_on_map' | translate }}
         </td>
         <td class="absorbing-column">
-            <d2-geometry
+            <tracker-geometry
                 d2-object-id="geometry"
                 d2-object="selectedTei"
                 d2-disabled=""
                 d2-geometry-type="trackedEntityTypes.selected.featureType"
+                d2-callback-function="geometryCallback()"
                 >
-            </d2-geometry>
+            </tracker-geometry>
         </td>
     </tr>
     <tr ng-if="trackedEntityTypes.selected && !hiddenFields[attribute.id] && ((editingDisabled  && attribute.show) || !editingDisabled)" ng-repeat="attribute in attributes | filter: {attribute: 'true'} ">

@@ -227,9 +227,19 @@ function getOrgUnits()
         if(res.length > 0){
             return;
         }
-        return dhis2.tracker.getTrackerObjects('organisationUnits', 'organisationUnits', DHIS2URL + '/organisationUnits.json', 'paging=false&fields=id,displayName,path', 'idb', dhis2.tc.store);        
+        return dhis2.tracker.getTrackerObjects('organisationUnits', 'organisationUnits', DHIS2URL + '/organisationUnits.json', 'paging=false&fields=id,displayName,path,geometry,level', 'idb', dhis2.tc.store);        
     });    
 }
+
+// function getOrgUnitsWithCoordinates()
+// {
+//     dhis2.tc.store.getKeys( 'organisationUnitsWithCoordinates').done(function(res){        
+//         if(res.length > 0){
+//             return;
+//         }
+//         return dhis2.tracker.getTrackerObjects('organisationUnits', 'organisationUnitsWithCoordinates', DHIS2URL + '/organisationUnits.json', 'paging=false&fields=id,displayName,path,geometry,level', 'idb', dhis2.tc.store);        
+//     });    
+// }
 
 function getOrgUnitLevels()
 {
